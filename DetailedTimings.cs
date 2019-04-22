@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
 
 namespace NvTimingsEd
 {
@@ -242,5 +243,112 @@ namespace NvTimingsEd
             else
                 return "UNKNOWN_CMD";
         }
+    }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class DisplayAttribute : Attribute
+    {
+        public string Caption { get; set; }
+        public bool Visible { get; set; } = true;
+        public Type CustomType { get; set; }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ResourceTiming
+    {
+        [Display(Caption = "hz" )]
+        public UInt16 refreshRateHz;
+        [Display(Visible = false)]
+        public UInt16 unk0;
+        [Display(Caption = "horAct")]
+        public UInt16 horActive;
+        [Display(Caption = "horBor")]
+        public UInt16 horBorder;
+        [Display(Caption = "horFP")]
+        public UInt16 horFrontPorch;
+        [Display(Caption = "horSW")]
+        public UInt16 horSyncPixels;
+        [Display(Caption = "horTot")]
+        public UInt16 horTotal;
+        [Display(Caption = "horFlg", CustomType = typeof(bool))]
+        public UInt16 horFlags;
+        [Display(Caption = "verAct")]
+        public UInt16 verActive;
+        [Display(Caption = "verBor")]
+        public UInt16 verBorder;
+        [Display(Caption = "verFP")]
+        public UInt16 verFrontPorch;
+        [Display(Caption = "verSW")]
+        public UInt16 verSyncLines;
+        [Display(Caption = "verTot")]
+        public UInt16 verTotal;
+        [Display(Caption = "verFlg", CustomType = typeof(bool))]
+        public UInt16 verFlags;
+        [Display(Visible = false)]
+        public UInt32 unk1;
+        [Display(Caption = "clock")]
+        public UInt16 freq10sKhz;
+        [Display(Visible = false)]
+        public UInt32 unk2;
+
+        public bool IsEmpty()
+        {
+            return (horTotal == 0 && verTotal == 0 && freq10sKhz == 0 && refreshRateHz == 0);
+        }
+
+        public static ResourceTiming FromMonitorTimings(MonitorTimings tims)
+        {
+            var dst = new ResourceTiming();
+            var hor = ExpandedTimingsPart.CreateFromTimingsPart(tims.hor);
+            var ver = ExpandedTimingsPart.CreateFromTimingsPart(tims.ver);
+
+            dst.freq10sKhz = tims.frequency;
+            dst.horActive = hor.visible;
+            dst.horBorder = hor.border;
+            dst.horFrontPorch = hor.frontPorch;
+            dst.horSyncPixels = hor.syncWidth;
+            dst.horTotal = hor.total;
+
+            dst.verActive = ver.visible;
+            dst.verBorder = ver.border;
+            dst.verFrontPorch = ver.frontPorch;
+            dst.verSyncLines = ver.syncWidth;
+            dst.verTotal = ver.total;
+
+            if (tims.frequency != 0 && hor.total != 0 && ver.total != 0)
+            {
+                var frequency = (decimal)(tims.frequency) / 100;
+                var refresh = (frequency * 1000000) / (hor.total * ver.total);
+                dst.refreshRateHz = (UInt16)Math.Round(refresh);
+            }            
+
+            return dst;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ResourceMonitorTimings
+    {
+        public UInt16 vendorId;
+        public UInt16 productId;
+
+        public string GetMonitorName()
+        {
+            char[] vendorName = new char[3];
+            {
+                var vendorNum = (UInt16)((vendorId & 0x00FFU) << 8 | (vendorId & 0xFF00U) >> 8);
+                vendorName[0] = (char)((vendorNum & 0x7C00) >> 10); vendorName[0] += '@';
+                vendorName[1] = (char)((vendorNum & 0x03E0) >> 5); vendorName[1] += '@';
+                vendorName[2] = (char)((vendorNum & 0x001F) >> 0); vendorName[2] += '@';
+            }
+            return String.Format("{0}_{1:X4}",new string(vendorName), productId);
+        }
+        public bool IsEmpty()
+        {
+            return (vendorId == 0 && productId == 0);
+        }
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+        public ResourceTiming[] timings;
     }
 }

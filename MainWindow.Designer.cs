@@ -48,6 +48,7 @@
             this.btnEditTiming = new System.Windows.Forms.Button();
             this.btnCopyTiming = new System.Windows.Forms.Button();
             this.btnDeleteTiming = new System.Windows.Forms.Button();
+            this.btnPatchNvStRes = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
@@ -61,7 +62,7 @@
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(344, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(379, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -119,7 +120,7 @@
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(344, 157);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(379, 157);
             this.tableLayoutPanel2.TabIndex = 2;
             // 
             // comboMonitors
@@ -129,7 +130,7 @@
             this.comboMonitors.FormattingEnabled = true;
             this.comboMonitors.Location = new System.Drawing.Point(3, 7);
             this.comboMonitors.Name = "comboMonitors";
-            this.comboMonitors.Size = new System.Drawing.Size(106, 21);
+            this.comboMonitors.Size = new System.Drawing.Size(141, 21);
             this.comboMonitors.TabIndex = 1;
             this.comboMonitors.SelectedIndexChanged += new System.EventHandler(this.comboMonitors_SelectedIndexChanged);
             // 
@@ -142,7 +143,7 @@
             this.flowLayoutPanel1.Controls.Add(this.btnNewMonitor);
             this.flowLayoutPanel1.Controls.Add(this.btnCopyMonitor);
             this.flowLayoutPanel1.Controls.Add(this.btnDeleteMonitor);
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(115, 3);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(150, 3);
             this.flowLayoutPanel1.MinimumSize = new System.Drawing.Size(226, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
             this.flowLayoutPanel1.Size = new System.Drawing.Size(226, 29);
@@ -153,7 +154,7 @@
             this.btnRefreshMonitors.Location = new System.Drawing.Point(3, 3);
             this.btnRefreshMonitors.Name = "btnRefreshMonitors";
             this.btnRefreshMonitors.Size = new System.Drawing.Size(57, 23);
-            this.btnRefreshMonitors.TabIndex = 7;
+            this.btnRefreshMonitors.TabIndex = 2;
             this.btnRefreshMonitors.Text = "Refresh";
             this.btnRefreshMonitors.UseVisualStyleBackColor = true;
             this.btnRefreshMonitors.Click += new System.EventHandler(this.btnRefreshMonitors_Click);
@@ -163,7 +164,7 @@
             this.btnNewMonitor.Location = new System.Drawing.Point(66, 3);
             this.btnNewMonitor.Name = "btnNewMonitor";
             this.btnNewMonitor.Size = new System.Drawing.Size(48, 23);
-            this.btnNewMonitor.TabIndex = 5;
+            this.btnNewMonitor.TabIndex = 3;
             this.btnNewMonitor.Text = "New";
             this.btnNewMonitor.UseVisualStyleBackColor = true;
             this.btnNewMonitor.Click += new System.EventHandler(this.btnNewOrCopyMonitor_Click);
@@ -173,7 +174,7 @@
             this.btnCopyMonitor.Location = new System.Drawing.Point(120, 3);
             this.btnCopyMonitor.Name = "btnCopyMonitor";
             this.btnCopyMonitor.Size = new System.Drawing.Size(48, 23);
-            this.btnCopyMonitor.TabIndex = 6;
+            this.btnCopyMonitor.TabIndex = 4;
             this.btnCopyMonitor.Text = "Copy";
             this.btnCopyMonitor.UseVisualStyleBackColor = true;
             this.btnCopyMonitor.Click += new System.EventHandler(this.btnNewOrCopyMonitor_Click);
@@ -183,7 +184,7 @@
             this.btnDeleteMonitor.Location = new System.Drawing.Point(174, 3);
             this.btnDeleteMonitor.Name = "btnDeleteMonitor";
             this.btnDeleteMonitor.Size = new System.Drawing.Size(48, 23);
-            this.btnDeleteMonitor.TabIndex = 8;
+            this.btnDeleteMonitor.TabIndex = 5;
             this.btnDeleteMonitor.Text = "Delete";
             this.btnDeleteMonitor.UseVisualStyleBackColor = true;
             this.btnDeleteMonitor.Click += new System.EventHandler(this.btnDeleteMonitor_Click);
@@ -195,8 +196,8 @@
             this.listMonitorTimings.FormattingEnabled = true;
             this.listMonitorTimings.Location = new System.Drawing.Point(3, 38);
             this.listMonitorTimings.Name = "listMonitorTimings";
-            this.listMonitorTimings.Size = new System.Drawing.Size(338, 87);
-            this.listMonitorTimings.TabIndex = 9;
+            this.listMonitorTimings.Size = new System.Drawing.Size(373, 87);
+            this.listMonitorTimings.TabIndex = 6;
             this.listMonitorTimings.SelectedIndexChanged += new System.EventHandler(this.listMonitorTimings_SelectedIndexChanged);
             this.listMonitorTimings.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listMonitorTimings_MouseDoubleClick);
             // 
@@ -209,11 +210,12 @@
             this.flowLayoutPanel2.Controls.Add(this.btnEditTiming);
             this.flowLayoutPanel2.Controls.Add(this.btnCopyTiming);
             this.flowLayoutPanel2.Controls.Add(this.btnDeleteTiming);
+            this.flowLayoutPanel2.Controls.Add(this.btnPatchNvStRes);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 128);
             this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(338, 29);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(373, 29);
             this.flowLayoutPanel2.TabIndex = 10;
             // 
             // btnRefreshTimings
@@ -221,7 +223,7 @@
             this.btnRefreshTimings.Location = new System.Drawing.Point(3, 3);
             this.btnRefreshTimings.Name = "btnRefreshTimings";
             this.btnRefreshTimings.Size = new System.Drawing.Size(57, 23);
-            this.btnRefreshTimings.TabIndex = 11;
+            this.btnRefreshTimings.TabIndex = 7;
             this.btnRefreshTimings.Text = "Refresh";
             this.btnRefreshTimings.UseVisualStyleBackColor = true;
             this.btnRefreshTimings.Click += new System.EventHandler(this.btnRefreshTimings_Click);
@@ -231,7 +233,7 @@
             this.btnNewTiming.Location = new System.Drawing.Point(66, 3);
             this.btnNewTiming.Name = "btnNewTiming";
             this.btnNewTiming.Size = new System.Drawing.Size(48, 23);
-            this.btnNewTiming.TabIndex = 9;
+            this.btnNewTiming.TabIndex = 8;
             this.btnNewTiming.Text = "New";
             this.btnNewTiming.UseVisualStyleBackColor = true;
             this.btnNewTiming.Click += new System.EventHandler(this.btnNewEditCopyTiming_Click);
@@ -241,7 +243,7 @@
             this.btnEditTiming.Location = new System.Drawing.Point(120, 3);
             this.btnEditTiming.Name = "btnEditTiming";
             this.btnEditTiming.Size = new System.Drawing.Size(48, 23);
-            this.btnEditTiming.TabIndex = 13;
+            this.btnEditTiming.TabIndex = 9;
             this.btnEditTiming.Text = "Edit";
             this.btnEditTiming.UseVisualStyleBackColor = true;
             this.btnEditTiming.Click += new System.EventHandler(this.btnNewEditCopyTiming_Click);
@@ -261,20 +263,30 @@
             this.btnDeleteTiming.Location = new System.Drawing.Point(228, 3);
             this.btnDeleteTiming.Name = "btnDeleteTiming";
             this.btnDeleteTiming.Size = new System.Drawing.Size(48, 23);
-            this.btnDeleteTiming.TabIndex = 12;
+            this.btnDeleteTiming.TabIndex = 11;
             this.btnDeleteTiming.Text = "Delete";
             this.btnDeleteTiming.UseVisualStyleBackColor = true;
             this.btnDeleteTiming.Click += new System.EventHandler(this.btnDeleteTiming_Click);
+            // 
+            // btnPatchNvStRes
+            // 
+            this.btnPatchNvStRes.Location = new System.Drawing.Point(282, 3);
+            this.btnPatchNvStRes.Name = "btnPatchNvStRes";
+            this.btnPatchNvStRes.Size = new System.Drawing.Size(82, 23);
+            this.btnPatchNvStRes.TabIndex = 12;
+            this.btnPatchNvStRes.Text = "To nvstres.dll";
+            this.btnPatchNvStRes.UseVisualStyleBackColor = true;
+            this.btnPatchNvStRes.Click += new System.EventHandler(this.btnPatchNvStRes_Click);
             // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(344, 181);
+            this.ClientSize = new System.Drawing.Size(379, 181);
             this.Controls.Add(this.tableLayoutPanel2);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = new System.Drawing.Size(360, 220);
+            this.MinimumSize = new System.Drawing.Size(395, 220);
             this.Name = "MainWindow";
             this.Text = "NvTimingsEd";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainWindow_FormClosed);
@@ -311,5 +323,6 @@
         private System.Windows.Forms.Button btnDeleteTiming;
         private System.Windows.Forms.ComboBox comboMonitors;
         private System.Windows.Forms.Button btnEditTiming;
+        private System.Windows.Forms.Button btnPatchNvStRes;
     }
 }

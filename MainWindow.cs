@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
 namespace NvTimingsEd
@@ -84,6 +85,9 @@ namespace NvTimingsEd
                 listMonitorTimings.DataSource = null;
                 btnCopyMonitor.Enabled = false;
                 btnDeleteMonitor.Enabled = false;
+                btnRefreshTimings.Enabled = false;
+                btnNewTiming.Enabled = false;
+                btnPatchNvStRes.Enabled = false;
                 listMonitorTimings_SelectedIndexChanged(listMonitorTimings, null);
                 return;
             }
@@ -91,6 +95,9 @@ namespace NvTimingsEd
             {
                 btnCopyMonitor.Enabled = true;
                 btnDeleteMonitor.Enabled = true;
+                btnRefreshTimings.Enabled = true;
+                btnNewTiming.Enabled = true;
+                btnPatchNvStRes.Enabled = true;
             }
 
             try
@@ -294,6 +301,11 @@ namespace NvTimingsEd
             btnRefreshTimings_Click(null, null);
         }
 
+        private static string GetNvidia3DVisionFolder()
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) + @"\NVIDIA Corporation\3D Vision";
+        }
+
         private void exportToNvtimingsiniToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (parametersKey == null)
@@ -305,6 +317,7 @@ namespace NvTimingsEd
                 dlg.FileName = "nvtimings";
                 dlg.DefaultExt = ".ini";
                 dlg.Filter = "Ini files (.ini)|*.ini";
+                dlg.InitialDirectory = GetNvidia3DVisionFolder();
                 if (dlg.ShowDialog() == DialogResult.OK)
                     theFileName = dlg.FileName;
                 else
@@ -413,6 +426,245 @@ namespace NvTimingsEd
             var oldSelection = listMonitorTimings.SelectedIndex;
             listMonitorTimings.DataSource = newDs;
             listMonitorTimings.SelectedIndex = oldSelection;
+        }
+
+        static byte[] MonitorNameToEdidIdentifier(string monitorName)
+        {
+            UInt16 monitorVendorShort = 0;
+            UInt16 monitorProductShort = 0;
+
+            char[] nameSplitChars = { '_' };
+            var nameParts = monitorName.Split(nameSplitChars);
+            if (nameParts.Length != 2)
+                return null;
+            else
+            {
+                var vendorStr = nameParts[0];
+                var productStr = nameParts[1];
+                if (vendorStr.Length != 3 || productStr.Length != 4)
+                    return null;
+
+                int vendorInt = 0;
+                foreach (var c in vendorStr)
+                {
+                    if (!char.IsLetter(c))
+                        return null;
+
+                    vendorInt |= char.ToUpper(c) - '@';
+                    vendorInt <<= 5;
+                }
+                foreach (var c in productStr)
+                {
+                    if (char.IsDigit(c) || (c >= 'A' && c <= 'F'))
+                        continue;
+                    else
+                        return null;
+                }
+
+                vendorInt >>= 5;
+                monitorVendorShort = (UInt16)((vendorInt & 0x00FFU) << 8 | (vendorInt & 0xFF00U) >> 8);
+
+                try
+                {
+                    monitorProductShort = BitConverter.ToUInt16(StructureExtensions.StringToByteArrayFastest(productStr), 0);
+                    monitorProductShort = (UInt16)((monitorProductShort & 0x00FFU) << 8 | (monitorProductShort & 0xFF00U) >> 8);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+
+            byte[] outputArr = new byte[sizeof(UInt16)+sizeof(UInt16)];
+            Array.Copy(BitConverter.GetBytes(monitorVendorShort), 0, outputArr, 0, sizeof(UInt16));
+            Array.Copy(BitConverter.GetBytes(monitorProductShort), 0, outputArr, sizeof(UInt16), sizeof(UInt16));
+
+            return outputArr;
+        }
+
+        private void btnPatchNvStRes_Click(object sender, EventArgs e)
+        {
+            if (monitorSubKey == null)
+                return;
+
+            var currMonitorName = monitorSubKey.Value.Name.Split('\\').Last().Trim();
+            byte[] monitorIdentBytes = MonitorNameToEdidIdentifier(currMonitorName);
+            if (monitorIdentBytes == null)
+            {
+                MessageBox.Show("Monitor name must be in the format ABC_HHHH where ABC are letters and HHHH is a hex-encoded uint16", "Invalid monitor name");
+                return;
+            }
+
+            MonitorTimings[] monTimings = null;
+            int actualLen = 0;
+            int invalidLen = 0;
+            try
+            {
+                var valueNames = monitorSubKey.Value.GetValueNames();
+                monTimings = new MonitorTimings[valueNames.Length];
+                foreach (var monVal in valueNames)
+                {
+                    try
+                    {
+                        monTimings[actualLen++] = MonitorTimings.CreateFromByteArray(StructureExtensions.StringToByteArrayFastest(monVal));
+                    }
+                    catch (Exception)
+                    {
+                        invalidLen++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error reading monitor key values");
+                return;
+            }
+
+            if (monTimings == null)
+                return;            
+            else if (actualLen > 6)
+            {
+                MessageBox.Show("nvstres.dll supports a maximum of 6 timings per monitor", "Too many monitor timings");
+                return;
+            }
+
+            if (invalidLen > 0)
+            {
+                var res = MessageBox.Show(actualLen.ToString() + " invalid monitor timings will be skipped. Continue?", "Invalid timings found", MessageBoxButtons.YesNo);
+                if (res != DialogResult.Yes)
+                    return;
+            }
+
+            byte[] resData = null;
+            const ushort RESOURCE_NAME = 8;
+            const ushort RESOURCE_TYPE = 10;
+            const ushort RESOURCE_LANG = 0;
+
+            string[] defaultFilenames = { "nvstres", "nvstres64" };
+            foreach (string defaultFilename in defaultFilenames)
+            {
+
+                string theFileName = null;
+                using (var dlg = new OpenFileDialog())
+                {
+                    dlg.FileName = defaultFilename;
+                    dlg.DefaultExt = ".dll";
+                    dlg.Filter = "DLL files (.dll)|*.dll";
+                    dlg.InitialDirectory = GetNvidia3DVisionFolder();
+                    if (dlg.ShowDialog() == DialogResult.OK)
+                        theFileName = dlg.FileName;
+                }
+
+                if (theFileName == null)
+                    return;
+
+                if (resData == null)
+                {
+                    try
+                    {
+                        resData = ResourceManager.GetResourceFromExecutable(theFileName, (IntPtr)RESOURCE_NAME, (IntPtr)RESOURCE_TYPE);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error reading resource");
+                        continue;
+                    }
+
+                    if (resData == null)
+                    {
+                        MessageBox.Show("No timings resource in " + theFileName, "Error finding resource");
+                        continue;
+                    }
+
+                    var currTimings = new ResourceMonitorTimings();
+                    var oneSize = Marshal.SizeOf(currTimings);
+                    var numEntries = resData.Length / oneSize;
+                    if (oneSize * numEntries != resData.Length)
+                    {
+                        MessageBox.Show(String.Format("Timings resource has uneven length of {0} expected {1}", resData.Length, oneSize * numEntries), "Error parsing resource");
+                        continue;
+                    }
+
+                    int foundIdx = -1;
+                    int firstFreeIdx = -1;
+                    var allTimings = new ResourceMonitorTimings[numEntries];
+                    for (int i = 0; i < numEntries; i++)
+                    {
+                        var entryData = resData.Skip(i * oneSize).Take(oneSize).ToArray();
+                        allTimings[i] = entryData.ToStructure<ResourceMonitorTimings>();
+                        if (currMonitorName.Equals(allTimings[i].GetMonitorName(), StringComparison.OrdinalIgnoreCase))
+                            foundIdx = i;
+                        else if (firstFreeIdx < 0 && allTimings[i].IsEmpty())
+                            firstFreeIdx = i;
+                    }
+
+                    if (foundIdx < 0 && firstFreeIdx < 0)
+                    {
+                        MessageBox.Show(String.Format("Timings for monitor {0} not found and the resource is full!", currMonitorName), "Cannot add to resource");
+                        continue;
+                    }
+
+                    var existingTimings = allTimings.ElementAtOrDefault(foundIdx);
+                    var newTimings = new ResourceMonitorTimings();
+                    newTimings.timings = new ResourceTiming[actualLen];
+                    newTimings.vendorId = BitConverter.ToUInt16(monitorIdentBytes, 0);
+                    newTimings.productId = BitConverter.ToUInt16(monitorIdentBytes, 2);
+                    for (int i = 0; i < actualLen; i++)
+                    {
+                        newTimings.timings[i] = ResourceTiming.FromMonitorTimings(monTimings[i]);
+                        if (existingTimings.timings != null)
+                        {
+                            newTimings.timings[i].horFlags = existingTimings.timings[0].horFlags;
+                            newTimings.timings[i].verFlags = existingTimings.timings[0].verFlags;
+                        }                        
+                    }
+                    Array.Sort(newTimings.timings, 0, actualLen, new FunctionalComparer<ResourceTiming>(
+                        (x, y) => (x.refreshRateHz == y.refreshRateHz) ? (x.freq10sKhz.CompareTo(y.freq10sKhz)) : (x.refreshRateHz.CompareTo(y.refreshRateHz))
+                    ));
+
+                    using (var dlg = new TimingReview(currMonitorName, existingTimings.timings, newTimings.timings))
+                    {
+                        var dlgRes = dlg.ShowDialog();
+                        if (dlgRes != DialogResult.OK)
+                            return;
+
+                        newTimings.timings = dlg.GetNewTimings();
+                        Array.Resize(ref newTimings.timings, 6);
+                    }
+
+                    int copyIdx = (foundIdx < 0) ? firstFreeIdx : foundIdx;
+                    Array.Copy(StructureExtensions.ToByteArray(newTimings), 0, resData, oneSize * copyIdx, oneSize);
+                }
+
+                IntPtr resHandle = IntPtr.Zero;
+                bool resUpdatedOk = false;
+                try
+                {
+                    resHandle = ResourceManager.BeginUpdateResource(theFileName, false);
+                    resUpdatedOk = ResourceManager.UpdateResourceWithBytes(resHandle, (IntPtr)RESOURCE_TYPE, (IntPtr)RESOURCE_NAME, RESOURCE_LANG, resData);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error updating resource");
+                    continue;
+                }
+                finally
+                {
+                    if (resHandle != IntPtr.Zero)
+                    {
+                        var resFinishedOk = ResourceManager.EndUpdateResource(resHandle, !resUpdatedOk);
+                        if (resUpdatedOk)
+                            resUpdatedOk = resFinishedOk;
+                    }
+                }
+                if (resUpdatedOk == false)
+                {
+                    MessageBox.Show("Error updating resource in " + theFileName, "Error updating resource");
+                    continue;
+                }
+                else
+                    MessageBox.Show("Applied changes to " + theFileName, "Finished updating resource");
+            }
         }
     }
 }
