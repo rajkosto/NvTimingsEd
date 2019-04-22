@@ -540,6 +540,7 @@ namespace NvTimingsEd
             const ushort RESOURCE_TYPE = 10;
             const ushort RESOURCE_LANG = 0;
 
+            int numFilesPatched = 0;
             string[] defaultFilenames = { "nvstres", "nvstres64" };
             foreach (string defaultFilename in defaultFilenames)
             {
@@ -663,8 +664,14 @@ namespace NvTimingsEd
                     continue;
                 }
                 else
+                {
                     MessageBox.Show("Applied changes to " + theFileName, "Finished updating resource");
+                    numFilesPatched++;
+                }
             }
+
+            if (numFilesPatched > 0)
+                MessageBox.Show(numFilesPatched.ToString() + " files have been patched.\nYou will likely need to REBOOT for any changes to take effect", "Done with patching");
         }
     }
 }
