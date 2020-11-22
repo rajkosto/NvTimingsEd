@@ -696,7 +696,7 @@
             0});
             this.numActualClock.Location = new System.Drawing.Point(244, 77);
             this.numActualClock.Maximum = new decimal(new int[] {
-            650,
+            2000,
             0,
             0,
             0});
@@ -898,7 +898,7 @@
             131072});
             this.numWantedClock.Location = new System.Drawing.Point(94, 77);
             this.numWantedClock.Maximum = new decimal(new int[] {
-            650,
+            2000,
             0,
             0,
             0});

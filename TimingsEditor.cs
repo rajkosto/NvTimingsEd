@@ -327,7 +327,7 @@ namespace NvTimingsEd
             ver.total = (UInt16)numVerTotal.Value;
 
             var dst = new MonitorTimings();
-            dst.frequency = (UInt16)(numActualClock.Value * 100);
+            dst.frequency = (UInt32)(numActualClock.Value * 100);
             dst.hor = hor.ToTimingsPart();
             dst.ver = ver.ToTimingsPart();
             return dst;

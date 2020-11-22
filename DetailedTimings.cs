@@ -155,8 +155,7 @@ namespace NvTimingsEd
             return StructureExtensions.ToByteArray(this);
         }
 
-        public UInt16 frequency; //in 10s of khz
-        private UInt16 zeroPadding; //for future possible expansion
+        public UInt32 frequency; //in 10s of khz
         public TimingsPart hor;
         public TimingsPart ver;
     }
@@ -287,9 +286,9 @@ namespace NvTimingsEd
         [Display(Visible = false)]
         public UInt32 unk1;
         [Display(Caption = "clock")]
-        public UInt16 freq10sKhz;
+        public UInt32 freq10sKhz;
         [Display(Visible = false)]
-        public UInt32 unk2;
+        public UInt16 unk2;
 
         public bool IsEmpty()
         {
